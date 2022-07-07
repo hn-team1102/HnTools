@@ -4,12 +4,12 @@ plugins {
 }
 
 android {
-    compileSdk 32
+    compileSdk 31
 
     defaultConfig {
         applicationId "vn.hn.hn_tools"
         minSdk 24
-        targetSdk 32
+        targetSdk 31
         versionCode 2
         versionName "1.0.1"
         ndk {
@@ -37,6 +37,7 @@ android {
 
     lintOptions {
         checkReleaseBuilds false
+        abortOnError false
     }
 }
 

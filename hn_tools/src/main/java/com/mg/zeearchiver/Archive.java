@@ -6,28 +6,20 @@
 
 package com.mg.zeearchiver;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Timer;
-
 import android.util.Log;
 
-import com.google.firebase.crashlytics.FirebaseCrashlytics;
 import com.mg.zeearchiver.data.ArchiveItemsList;
 
-import timber.log.Timber;
+import java.util.ArrayList;
+import java.util.List;
+
 
 public class Archive {
     static {
-        try {
-            System.loadLibrary("Rar");
-            System.loadLibrary("7z");
-            System.loadLibrary("zeearchiver");
-            init();
-        } catch (Exception exception) {
-            Timber.e(exception);
-            FirebaseCrashlytics.getInstance().recordException(new Throwable("Init libC error " + exception.getMessage()));
-        }
+        System.loadLibrary("Rar");
+        System.loadLibrary("7z");
+        System.loadLibrary("zeearchiver");
+        init();
     }
 
     /**
