@@ -439,7 +439,7 @@ HRESULT ListArchives(CCodecs *codecs, const CIntVector &formatIndices,
     CustomArchiveItemList& dataList)
 {
     try {
-
+        bool errorPass = false;
         numErrors = 0;
         CFieldPrinter fieldPrinter;
         if (!techMode)
@@ -485,8 +485,10 @@ HRESULT ListArchives(CCodecs *codecs, const CIntVector &formatIndices,
                 if (result == S_FALSE)
                 {
 #ifndef _NO_CRYPTO
-                    if (openCallback.Open_WasPasswordAsked())
+                    if (openCallback.Open_WasPasswordAsked()) {
+                        errorPass = true;
                         g_StdOut << "Can not open encrypted archive. Wrong password?";
+                    }
                     else
 #endif
                         g_StdOut << "Can not open file as archive";
@@ -682,6 +684,9 @@ HRESULT ListArchives(CCodecs *codecs, const CIntVector &formatIndices,
             fieldPrinter.PrintSummaryInfo(numFiles2, numDirs2, totalUnPackSizePointer2, totalPackSizePointer2);
             g_StdOut << endl;
             g_StdOut << "Archives: " << numArcs << endl;
+        }
+        if (errorPass) {
+            numErrors = 8888;
         }
         return S_OK;
     }catch (...){

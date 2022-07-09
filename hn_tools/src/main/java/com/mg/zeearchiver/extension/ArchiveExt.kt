@@ -1,14 +1,16 @@
 package com.mg.zeearchiver.extension
 
 import com.mg.zeearchiver.Archive
+import com.mg.zeearchiver.ArchiveData
 import com.mg.zeearchiver.data.ArchiveItemsList
 
 
 // input file path
-fun String.getListFileInZip(): List<ArchiveItemsList.ArchiveItem> {
+// format pass  is "-p123456"
+fun String.getListFileInZip(password : String = "123456"): ArchiveData {
     return try {
-        Archive().getArchiveItemsList(this)
+        Archive().getArchiveItemsList(this, "-p$password")
     } catch (e: Exception) {
-        emptyList()
+        throw RuntimeException(e.message)
     }
 }

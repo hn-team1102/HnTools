@@ -58,11 +58,12 @@ public class Archive {
      * opens th archive in listing mode and returns a list of items in {@link com.mg.zeearchiver.data.ArchiveItemsList }
      *
      * @param archPath  archive name including path
-     * @param itemsList passed {@link com.mg.zeearchiver.data.ArchiveItemsList } object. After successful return this should
+     * @param itemsList passed {@link ArchiveItemsList } object. After successful return this should
      *                  contain a flatten list of all archive items
+     * @param password
      * @return error code or 0
      */
-    public native int listArchive2(String archPath, ArchiveItemsList itemsList);
+    public native int listArchive2(String archPath, ArchiveItemsList itemsList, String password);
 
     /**
      * Extracts the supplied archive into the given directory
@@ -124,17 +125,13 @@ public class Archive {
         supportedFormats.add(af);
     }
 
-    public List<ArchiveItemsList.ArchiveItem> getArchiveItemsList(String filePath) {
+    public ArchiveData getArchiveItemsList(String filePath, String password) {
         ArchiveItemsList archiveItemsList = new ArchiveItemsList();
-        try {
-            int result = listArchive2(filePath, archiveItemsList);
-            if (result == -1992) {
-                return new ArrayList<>();
-            }
-            return archiveItemsList.getItems();
-        } catch (Exception e) {
-            return new ArrayList<>();
-        }
+        int result = listArchive2(filePath, archiveItemsList, password);
+        return new ArchiveData(
+                result == 0 ? archiveItemsList.getItems() : new ArrayList<>(),
+                result == 8888
+        );
     }
 
 

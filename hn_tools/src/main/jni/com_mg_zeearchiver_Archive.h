@@ -61,7 +61,7 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive
   (JNIEnv *, jobject, jstring, jstring);
 
 JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
-		(JNIEnv *, jobject, jstring, jobject);
+		(JNIEnv *, jobject, jstring, jobject, jstring);
 
 #ifdef __cplusplus
 }

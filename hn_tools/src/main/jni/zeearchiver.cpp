@@ -438,6 +438,9 @@ int ProcessCommand(int numArgs, const char *args[], Environment &env) {
 #endif
                     numErrors,
                     dataList);
+            if (numErrors == 8888) {
+                return NExitCode::kPassError;
+            }
             if (numErrors > 0) {
                 g_StdOut << endl << "Errors: " << numErrors;
                 return NExitCode::kFatalError;
@@ -561,7 +564,7 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive
 }
 
 JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
-        (JNIEnv *env, jobject obj, jstring path, jobject itemsList) {
+        (JNIEnv *env, jobject obj, jstring path, jobject itemsList, jstring password) {
     try {
         if (jvm) {
             jvm->AttachCurrentThread(&env, nullptr);
@@ -575,11 +578,18 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
         int len = env->GetStringLength(path);
         env->GetStringUTFRegion(path, 0, len, outbuf);
         LOGI("Listing Archive: %s \n", outbuf);
-        const char *args[3] = {"7z", "l", outbuf};
+
+              char passOutbuf[1024];
+        memset(&passOutbuf[0], 0, sizeof(passOutbuf));
+        int lenPass = env->GetStringLength(password);
+        env->GetStringUTFRegion(password, 0, lenPass, passOutbuf);
+        LOGI("Listing Archive password: %s \n", passOutbuf);
+
+        const char *args[4] = {"7z", "l", passOutbuf, outbuf};
 
         CustomArchiveItemList dataList;
         environment.extraData = &dataList;
-        int ret = ProcessCommand(3, args, environment);
+        int ret = ProcessCommand(4, args, environment);
         LOGI("Number of Items in List is : %d ", dataList.Size());
 //        g_StdOut << "Number of Items in List is :" << dataList.Size() << endl;
         for (int i = 0; i < dataList.Size(); i++) {
