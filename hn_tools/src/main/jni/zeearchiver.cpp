@@ -595,10 +595,8 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
         for (int i = 0; i < dataList.Size(); i++) {
             jstring listItemPath = env->NewStringUTF(GetOemString(dataList[i].itemPath));
             jstring listItemDateTime = env->NewStringUTF(GetOemString(dataList[i].time));
-//        jlong unpackSize = dataList[i].unpackSize;
-//        jlong packSize = dataList[i].packSize;
-        jlong unpackSize = 0;
-        jlong packSize = 0;
+            jlong unpackSize = dataList[i].unpackSize;
+            jlong packSize = dataList[i].packSize;
         env->CallVoidMethod(itemsList,
                                 archiveItemsList_addItem,
                                 listItemPath,
@@ -659,13 +657,13 @@ JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_loadAllCodecsAndFormats
     jclass cls = env->GetObjectClass(obj);
     addSupportedFormat_ID = env->GetMethodID(cls, "addSupportedFormat", "(ILjava/lang/String;"
                                                                         "ZZLjava/lang/String;Ljava/lang/String;Ljava/lang/String;)V");
-    if (addSupportedFormat_ID == NULL) {
+    if (addSupportedFormat_ID == nullptr) {
         LOGE("Error fetching addSupportedFormat MethodID !");
         return;
     }
 
     addSupportedCodec_ID = env->GetMethodID(cls, "addSupportedCodec", "(IJZLjava/lang/String;)V");
-    if (addSupportedCodec_ID == NULL) {
+    if (addSupportedCodec_ID == nullptr) {
         LOGE("Error fetching addSupportedCodec MethodID !");
         return;
     }
