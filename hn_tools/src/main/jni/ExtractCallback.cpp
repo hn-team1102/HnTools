@@ -47,7 +47,7 @@ void CExtractCallbackImp::Init() {
 
 void CExtractCallbackImp::AddErrorMessage(LPCWSTR message) {
     ThereAreMessageErrors = true;
-    if (enviro.env != nullptr) {
+    if (enviro.env != nullptr && exAddErrorMessage != nullptr) {
         jstring Name = enviro.env->NewStringUTF(GetOemString(message));
         enviro.env->CallVoidMethod(enviro.obj, exAddErrorMessage, Name);
         enviro.env->DeleteLocalRef(Name);
@@ -64,7 +64,7 @@ STDMETHODIMP CExtractCallbackImp::SetNumFiles(UInt64
 #ifndef _SFX
     //LOGI("Calling >>>> CExtractCallbackImp::SetNumFiles");
     // ProgressDialog->Sync.SetNumFilesTotal(numFiles);
-    if (setNumFiles == nullptr) return S_FALSE;
+    if (setNumFiles == nullptr) return S_OK;
     enviro.env->CallLongMethod(enviro.obj, setNumFiles, (jlong) numFiles);
 #endif
     return S_OK;
@@ -88,6 +88,7 @@ STDMETHODIMP CExtractCallbackImp::SetTotal(UInt64 total) {
 STDMETHODIMP CExtractCallbackImp::SetCompleted(const UInt64 *value) {
     //LOGI("Calling >>>> CExtractCallbackImp::SetCompleted");
     //RINOK(ProgressDialog->Sync.ProcessStopAndPause());
+    if (setCompleted == nullptr) return S_OK;
     if (value != nullptr)
         //ProgressDialog->Sync.SetPos(*value);
         enviro.env->CallLongMethod(enviro.obj, setCompleted, (jlong) (*value));
@@ -103,6 +104,7 @@ HRESULT CExtractCallbackImp::Open_CheckBreak() {
 HRESULT CExtractCallbackImp::Open_SetTotal(const UInt64 *numFiles/* numFiles */,
                                            const UInt64 *numBytes/* numBytes */) {
     // if (numFiles != NULL) ProgressDialog->Sync.SetNumFilesTotal(*numFiles);
+    if (open_SetTotal == nullptr) return S_OK;
     if (numFiles)//&& numBytes)
         enviro.env->CallLongMethod(enviro.obj, open_SetTotal, (jlong) (*numFiles), 0);//*numBytes);
     return Open_CheckBreak();
@@ -144,6 +146,7 @@ void CExtractCallbackImp::Open_ClearPasswordWasAskedFlag() {
 STDMETHODIMP CExtractCallbackImp::SetRatioInfo(const UInt64 *inSize, const UInt64 *outSize) {
     //LOGI("SetRatioInfo Called ");
     // ProgressDialog->Sync.SetRatioInfo(inSize, outSize);
+    if (setRatioInfo == nullptr) return S_OK;
     if (inSize && outSize)
         enviro.env->CallLongMethod(enviro.obj, setRatioInfo, (jlong) (*inSize), (jlong) (*outSize));
     return Open_CheckBreak();
