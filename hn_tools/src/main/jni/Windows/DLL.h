@@ -6,43 +6,45 @@
 #include "../Common/MyString.h"
 
 typedef void * HMODULE;
-
+// #define LOAD_LIBRARY_AS_DATAFILE 0
 typedef int (*FARPROC)();
 
 namespace NWindows {
-namespace NDLL {
+    namespace NDLL {
 
-class CLibrary
-{
-  bool LoadOperations(HMODULE newModule);
-  HMODULE _module;
-public:
-  operator HMODULE() const { return _module; }
-  HMODULE* operator&() { return &_module; }
+        class CLibrary
+        {
+            HMODULE _module;
+        public:
+            CLibrary(): _module(NULL) {};
+            ~CLibrary() { Free(); }
 
+            operator HMODULE() const { return _module; }
+            HMODULE* operator&() { return &_module; }
+            bool IsLoaded() const { return (_module != NULL); };
 
-  CLibrary():_module(NULL) {};
-  ~CLibrary();
+            void Attach(HMODULE m)
+            {
+              Free();
+              _module = m;
+            }
+            HMODULE Detach()
+            {
+              HMODULE m = _module;
+              _module = NULL;
+              return m;
+            }
 
-  bool Free();
+            bool Free();
+            // bool LoadEx(CFSTR path, DWORD flags = LOAD_LIBRARY_AS_DATAFILE);
+            bool Load(CFSTR path);
+            FARPROC GetProc(LPCSTR procName) const; //  { return My_GetProcAddress(_module, procName); }
+        };
 
-  void Attach(HMODULE m)
-  {
-    Free();
-    _module = m;
-  }
-  HMODULE Detach()
-  {
-    HMODULE m = _module;
-    _module = NULL;
-    return m;
-  }
+        bool MyGetModuleFileName(FString &path);
 
+        FString GetModuleDirPrefix();
 
-  bool Load(LPCTSTR fileName);
-  FARPROC GetProc(LPCSTR procName) const;
-};
-
-}}
+    }}
 
 #endif

@@ -26,39 +26,34 @@
 #define TRACEN(u)  /* */
 
 namespace NWindows {
-namespace NDLL {
+    namespace NDLL {
 
-CLibrary::~CLibrary()
-{
-  Free();
-}
-
-bool CLibrary::Free()
-{
-TRACEN((printf("CLibrary::Free(%p)\n",(void *)_module)))
-  if (_module == 0)
-    return true;
+        bool CLibrary::Free()
+        {
+          TRACEN((printf("CLibrary::Free(this=%p,%p)\n",(void *)this,(void *)_module)))
+          if (_module == 0)
+            return true;
 
 #ifdef __APPLE_CC__
-  int ret = NSUnLinkModule ((NSModule)_module, 0);
+          int ret = NSUnLinkModule ((NSModule)_module, 0);
 #elif ENV_BEOS
-  int ret = unload_add_on((image_id)_module);
+          int ret = unload_add_on((image_id)_module);
 #else
-  int ret = dlclose(_module);
+          int ret = dlclose(_module);
 #endif
-TRACEN((printf("CLibrary::Free dlclose(%p)=%d\n",(void *)_module,ret)))
-  if (ret != 0) return false;
-  _module = 0;
-  return true;
-}
+          TRACEN((printf("CLibrary::Free dlclose(%p)=%d\n",(void *)_module,ret)))
+          if (ret != 0) return false;
+          _module = 0;
+          return true;
+        }
 
-static FARPROC local_GetProcAddress(HMODULE module,LPCSTR lpProcName)
-{
-  void *ptr = 0;
-  TRACEN((printf("local_GetProcAddress(%p,%s)\n",(void *)module,lpProcName)))
-  if (module) {
+        static FARPROC local_GetProcAddress(HMODULE module,LPCSTR lpProcName)
+        {
+          void *ptr = 0;
+          TRACEN((printf("local_GetProcAddress(%p,%s)\n",(void *)module,lpProcName)))
+          if (module) {
 #ifdef __APPLE_CC__
-    char name[MAX_PATHNAME_LEN];
+            char name[MAX_PATHNAME_LEN];
     snprintf(name,sizeof(name),"_%s",lpProcName);
     name[sizeof(name)-1] = 0;
     TRACEN((printf("NSLookupSymbolInModule(%p,%s)\n",(void *)module,name)))
@@ -70,53 +65,46 @@ static FARPROC local_GetProcAddress(HMODULE module,LPCSTR lpProcName)
       ptr = 0;
     }
 #elif ENV_BEOS
-    if (get_image_symbol((image_id)module, lpProcName, B_SYMBOL_TYPE_TEXT, &ptr) != B_OK)
+            if (get_image_symbol((image_id)module, lpProcName, B_SYMBOL_TYPE_TEXT, &ptr) != B_OK)
       ptr = 0;
 #else
-    ptr = dlsym (module, lpProcName);
+            ptr = dlsym (module, lpProcName);
 #endif
-	TRACEN((printf("CLibrary::GetProc : dlsym(%p,%s)=%p\n",(void *)module,lpProcName,ptr)))
-  }
-  return (FARPROC)ptr;
-}
+            TRACEN((printf("CLibrary::GetProc : dlsym(%p,%s)=%p\n",(void *)module,lpProcName,ptr)))
+          }
+          return (FARPROC)ptr;
+        }
 
-FARPROC CLibrary::GetProc(LPCSTR lpProcName) const
-{
-  TRACEN((printf("CLibrary::GetProc(%p,%s)\n",(void *)_module,lpProcName)))
-  return local_GetProcAddress(_module,lpProcName);
-}
+        FARPROC CLibrary::GetProc(LPCSTR lpProcName) const
+        {
+          TRACEN((printf("CLibrary::GetProc(%p,%s)\n",(void *)_module,lpProcName)))
+          return local_GetProcAddress(_module,lpProcName);
+        }
 
-bool CLibrary::LoadOperations(HMODULE newModule)
-{
-  if (newModule == NULL)
-    return false;
-  if(!Free())
-    return false;
-  _module = newModule;
-  return true;
-}
+        bool CLibrary::Load(LPCTSTR lpLibFileName)
+        {
+          if(!Free())
+            return false;
 
-bool CLibrary::Load(LPCTSTR lpLibFileName)
-{
-  void *handler = 0;
-  char  name[MAX_PATHNAME_LEN+1];
+          void *handler = 0;
+          char  name[MAX_PATHNAME_LEN+1];
 #ifdef _UNICODE
-  AString name2 = UnicodeStringToMultiByte(lpLibFileName);
-  strcpy(name,nameWindowToUnix((const char *)name2));
+          AString name2 = UnicodeStringToMultiByte(lpLibFileName);
+          strcpy(name,nameWindowToUnix((const char *)name2));
 #else
-  strcpy(name,nameWindowToUnix(lpLibFileName));
+          strcpy(name,nameWindowToUnix(lpLibFileName));
 #endif
-  
-  // replace ".dll" with ".so"
-  size_t len = strlen(name);
-  if ((len >=4) && (strcmp(name+len-4,".dll") == 0)) {
-    strcpy(name+len-4,".so");
-  }
 
-  TRACEN((printf("CLibrary::Load(%ls) => %s\n",lpLibFileName,name)))
+          // replace ".dll" with ".so"
+          size_t len = strlen(name);
+          if ((len >=4) && (strcmp(name+len-4,".dll") == 0)) {
+            strcpy(name+len-4,".so");
+          }
+
+          TRACEN((printf("CLibrary::Load(this=%p,%ls) => %s\n",(void *)this,lpLibFileName,name)))
 
 #ifdef __APPLE_CC__
-  NSObjectFileImage image;
+          NSObjectFileImage image;
   NSObjectFileImageReturnCode nsret;
 
   nsret = NSCreateObjectFileImageFromFile (name, &image);
@@ -128,7 +116,7 @@ bool CLibrary::Load(LPCTSTR lpLibFileName)
      TRACEN((printf("NSCreateObjectFileImageFromFile(%s) : ERROR\n",name)))
   }
 #elif ENV_BEOS
-  // normalize path (remove things like "./", "..", etc..), otherwise it won't work
+          // normalize path (remove things like "./", "..", etc..), otherwise it won't work
   BPath p(name, NULL, true);
   status_t err = B_OK;
   image_id image = load_add_on(p.Path());
@@ -141,53 +129,57 @@ TRACEN((printf("load_add_on(%s)=%d\n",p.Path(),(int)image)))
     handler = (HMODULE)image;
   }
 #else
-  int options_dlopen = 0;
+          int options_dlopen = 0;
 #ifdef RTLD_LOCAL
-  options_dlopen |= RTLD_LOCAL;
+          options_dlopen |= RTLD_LOCAL;
 #endif
 #ifdef RTLD_NOW
-  options_dlopen |= RTLD_NOW;
+          options_dlopen |= RTLD_NOW;
 #endif
 #ifdef RTLD_GROUP
-  #if ! (defined(hpux) || defined(__hpux))
+          #if ! (defined(hpux) || defined(__hpux))
   options_dlopen |= RTLD_GROUP; // mainly for solaris but not for HPUX
   #endif
 #endif
-  TRACEN((printf("CLibrary::Load - dlopen(%s,0x%d)\n",name,options_dlopen)))
-  handler = dlopen(name,options_dlopen);
+          TRACEN((printf("CLibrary::Load - dlopen(%s,0x%d)\n",name,options_dlopen)))
+          handler = dlopen(name,options_dlopen);
 #endif // __APPLE_CC__
-  TRACEN((printf("CLibrary::Load(%s) => %p\n",name,handler)))
-  if (handler) {
+          TRACEN((printf("CLibrary::Load(%s) => %p\n",name,handler)))
+          if (handler) {
 
-    // Call DllMain() like in Windows : useless now
+            // Call DllMain() like in Windows : useless now
 
-    // Propagate the value of global_use_utf16_conversion into the plugins
-    int *tmp = (int *)local_GetProcAddress(handler,"global_use_utf16_conversion");
-    if (tmp) *tmp = global_use_utf16_conversion;
+            // Propagate the value of global_use_utf16_conversion into the plugins
+            int *tmp = (int *)local_GetProcAddress(handler,"global_use_utf16_conversion");
+            if (tmp) *tmp = global_use_utf16_conversion;
+#ifdef ENV_HAVE_LSTAT
+            tmp = (int *)local_GetProcAddress(handler,"global_use_lstat");
+            if (tmp) *tmp = global_use_lstat;
+#endif
+            // test construtors calls
+            void (*fctTest)(void) = (void (*)(void))local_GetProcAddress(handler,"sync_TestConstructor");
+            if (fctTest) fctTest();
 
-    tmp = (int *)local_GetProcAddress(handler,"global_use_lstat");
-    if (tmp) *tmp = global_use_lstat;
-
-    // test construtors calls
-    void (*fctTest)(void) = (void (*)(void))local_GetProcAddress(handler,"sync_TestConstructor");
-    if (fctTest) fctTest();
-
-  } else {
+          } else {
 #ifdef __APPLE_CC__
-    NSLinkEditErrors c;
+            NSLinkEditErrors c;
     int num_err;
     const char *file,*err;
     NSLinkEditError(&c,&num_err,&file,&err);
     printf("Can't load '%ls' (%s)\n", lpLibFileName,err);
 #elif ENV_BEOS
-    printf("Can't load '%ls' (%s)\n", lpLibFileName,strerror(err));
+            printf("Can't load '%ls' (%s)\n", lpLibFileName,strerror(err));
 #else
-    printf("Can't load '%ls' (%s)\n", lpLibFileName,dlerror());
+            printf("Can't load '%ls' (%s)\n", lpLibFileName,dlerror());
 #endif
-  } 
+          }
 
-  return LoadOperations(handler);
-}
+          _module = handler;
+          TRACEN((printf("CLibrary::Load(this=%p,%ls) => _module=%p\n",(void *)this,lpLibFileName,_module)))
 
-}}
+          return true;
+        }
+
+
+    }}
 

@@ -4,28 +4,31 @@
 #define __EXTRACT_MODE_H
 
 namespace NExtract {
-  
-  namespace NPathMode
-  {
-    enum EEnum
+
+    namespace NPathMode
     {
-      kFullPathnames,
-      kCurrentPathnames,
-      kNoPathnames
-    };
-  }
-  
-  namespace NOverwriteMode
-  {
-    enum EEnum
+        enum EEnum
+        {
+            kFullPaths,
+            kCurPaths,
+            kNoPaths,
+            kAbsPaths,
+            kNoPathsAlt // alt streams must be extracted without name of base file
+        };
+    }
+
+    namespace NOverwriteMode
     {
-      kAskBefore,
-      kWithoutPrompt,
-      kSkipExisting,
-      kAutoRename,
-      kAutoRenameExisting
-    };
-  }
+        enum EEnum
+        {
+            kAsk,
+            kOverwrite,
+            kSkip,
+            kRename,
+            kRenameExisting
+        };
+    }
+
 }
 
 #endif

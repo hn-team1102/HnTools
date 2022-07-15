@@ -147,7 +147,7 @@ public:
     PasswordIsDefined(false),
     PasswordWasAsked(false),
     #endif
-    OverwriteMode(NExtract::NOverwriteMode::kAskBefore),
+    OverwriteMode(NExtract::NOverwriteMode::kAsk),
     enviro(env)
     {}
    

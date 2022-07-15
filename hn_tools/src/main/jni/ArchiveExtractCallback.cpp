@@ -1,497 +1,342 @@
-// ArchiveExtractCallback.cpp
+// ArchiveExtractCallback.h
 
-#include "StdAfx.h"
+#ifndef __ARCHIVE_EXTRACT_CALLBACK_H
+#define __ARCHIVE_EXTRACT_CALLBACK_H
 
-#include "Common/ComTry.h"
+#include "Common/MyCom.h"
 #include "Common/Wildcard.h"
 
 #include "Windows/FileDir.h"
-#include "Windows/FileFind.h"
-#include "Windows/PropVariant.h"
-#include "Windows/PropVariantConversions.h"
 
-#include "FilePathAutoRename.h"
+#include "IPassword.h"
 
-#include "ExtractingFilePath.h"
+#include "FileStreams.h"
+#include "ProgressUtils.h"
 
-#include "ArchiveExtractCallback.h"
-//#include "Common/StringConvert.h"
+#include "IArchive.h"
 
-using namespace NWindows;
+#include "ExtractMode.h"
+#include "IFileExtractCallback.h"
+#include "OpenArchive.h"
 
-static const wchar_t *kCantAutoRename = L"ERROR: Can not create file with auto name";
-static const wchar_t *kCantRenameFile = L"ERROR: Can not rename existing file ";
-static const wchar_t *kCantDeleteOutputFile = L"ERROR: Can not delete output file ";
+#include "Common/HashCalc.h"
 
-void CArchiveExtractCallback::Init(
-    const NWildcard::CCensorNode *wildcardCensor,
-    const CArc *arc,
-    IFolderArchiveExtractCallback *extractCallback2,
-    bool stdOutMode, bool testMode, bool crcMode,
-    const UString &directoryPath,
-    const UStringVector &removePathParts,
-    UInt64 packSize)
+#ifndef _SFX
+
+class COutStreamWithHash:
+        public ISequentialOutStream,
+        public CMyUnknownImp
 {
-  _wildcardCensor = wildcardCensor;
+    CMyComPtr<ISequentialOutStream> _stream;
+    UInt64 _size;
+    bool _calculate;
+public:
+    IHashCalc *_hash;
 
-  _stdOutMode = stdOutMode;
-  _testMode = testMode;
-  _crcMode = crcMode;
-  _unpTotal = 1;
-  _packTotal = packSize;
-
-  _extractCallback2 = extractCallback2;
-  _compressProgress.Release();
-  _extractCallback2.QueryInterface(IID_ICompressProgressInfo, &_compressProgress);
-
-  LocalProgressSpec->Init(extractCallback2, true);
-  LocalProgressSpec->SendProgress = false;
-
- 
-  _removePathParts = removePathParts;
-  _arc = arc;
-  _directoryPath = directoryPath;
-  NFile::NName::NormalizeDirPathPrefix(_directoryPath);
-}
-
-STDMETHODIMP CArchiveExtractCallback::SetTotal(UInt64 size)
-{
-  COM_TRY_BEGIN
-  _unpTotal = size;
-  if (!_multiArchives && _extractCallback2)
-    return _extractCallback2->SetTotal(size);
-  return S_OK;
-  COM_TRY_END
-}
-
-static void NormalizeVals(UInt64 &v1, UInt64 &v2)
-{
-  const UInt64 kMax = (UInt64)1 << 31;
-  while (v1 > kMax)
-  {
-    v1 >>= 1;
-    v2 >>= 1;
-  }
-}
-
-static UInt64 MyMultDiv64(UInt64 unpCur, UInt64 unpTotal, UInt64 packTotal)
-{
-  NormalizeVals(packTotal, unpTotal);
-  NormalizeVals(unpCur, unpTotal);
-  if (unpTotal == 0)
-    unpTotal = 1;
-  return unpCur * packTotal / unpTotal;
-}
-
-STDMETHODIMP CArchiveExtractCallback::SetCompleted(const UInt64 *completeValue)
-{
-  COM_TRY_BEGIN
-  if (!_extractCallback2)
-    return S_OK;
-
-  if (_multiArchives)
-  {
-    if (completeValue != nullptr)
+    MY_UNKNOWN_IMP
+    STDMETHOD(Write)(const void *data, UInt32 size, UInt32 *processedSize);
+    void SetStream(ISequentialOutStream *stream) { _stream = stream; }
+    void ReleaseStream() { _stream.Release(); }
+    void Init(bool calculate = true)
     {
-      UInt64 packCur = LocalProgressSpec->InSize + MyMultDiv64(*completeValue, _unpTotal, _packTotal);
-      return _extractCallback2->SetCompleted(&packCur);
+        InitCRC();
+        _size = 0;
+        _calculate = calculate;
     }
-  }
-  return _extractCallback2->SetCompleted(completeValue);
-  COM_TRY_END
-}
+    void EnableCalc(bool calculate) { _calculate = calculate; }
+    void InitCRC() { _hash->InitForNewFile(); }
+    UInt64 GetSize() const { return _size; }
+};
 
-STDMETHODIMP CArchiveExtractCallback::SetRatioInfo(const UInt64 *inSize, const UInt64 *outSize)
+#endif
+
+struct CExtractNtOptions
 {
-  COM_TRY_BEGIN
-  return _localProgress->SetRatioInfo(inSize, outSize);
-  COM_TRY_END
-}
+    CBoolPair NtSecurity;
+    CBoolPair SymLinks;
+    CBoolPair HardLinks;
+    CBoolPair AltStreams;
+    bool ReplaceColonForAltStream;
+    bool WriteToAltStreamIfColon;
 
-void CArchiveExtractCallback::CreateComplexDirectory(const UStringVector &dirPathParts, UString &fullPath)
+    CExtractNtOptions():
+            ReplaceColonForAltStream(false),
+            WriteToAltStreamIfColon(false)
+    {
+        SymLinks.Val = true;
+        HardLinks.Val = true;
+        AltStreams.Val = true;
+    }
+};
+
+#ifndef _SFX
+
+class CGetProp:
+        public IGetProp,
+        public CMyUnknownImp
 {
-  fullPath = _directoryPath;
-  for (int i = 0; i < dirPathParts.Size(); i++)
-  {
-    if (i > 0)
-      fullPath += wchar_t(NFile::NName::kDirDelimiter);
-    fullPath += dirPathParts[i];
-    NFile::NDirectory::MyCreateDirectory(fullPath);
-  }
-}
+public:
+    const CArc *Arc;
+    UInt32 IndexInArc;
+    // UString Name; // relative path
 
-HRESULT CArchiveExtractCallback::GetTime(int index, PROPID propID, FILETIME &filetime, bool &filetimeIsDefined)
+    MY_UNKNOWN_IMP1(IGetProp)
+    INTERFACE_IGetProp(;)
+};
+
+#endif
+
+#if 0 // FIXME #ifndef _SFX
+#ifndef UNDER_CE
+
+#define SUPPORT_LINKS
+
+#endif
+#endif
+
+
+#ifdef SUPPORT_LINKS
+
+struct CHardLinkNode
 {
-  filetimeIsDefined = false;
-  NCOM::CPropVariant prop;
-  RINOK(_arc->Archive->GetProperty(index, propID, &prop));
-  if (prop.vt == VT_FILETIME)
-  {
-    filetime = prop.filetime;
-    filetimeIsDefined = (filetime.dwHighDateTime != 0 || filetime.dwLowDateTime != 0);
-  }
-  else if (prop.vt != VT_EMPTY)
-    return E_FAIL;
-  return S_OK;
-}
+  UInt64 StreamId;
+  UInt64 INode;
 
-HRESULT CArchiveExtractCallback::GetUnpackSize()
+  int Compare(const CHardLinkNode &a) const;
+};
+
+class CHardLinks
 {
-  NCOM::CPropVariant prop;
-  RINOK(_arc->Archive->GetProperty(_index, kpidSize, &prop));
-  _curSizeDefined = (prop.vt != VT_EMPTY);
-  if (_curSizeDefined)
-    _curSize = ConvertPropVariantToUInt64(prop);
-  return S_OK;
-}
+public:
+  CRecordVector<CHardLinkNode> IDs;
+  CObjectVector<FString> Links;
 
-STDMETHODIMP CArchiveExtractCallback::GetStream(UInt32 index, ISequentialOutStream **outStream, Int32 askExtractMode)
+  void Clear()
+  {
+    IDs.Clear();
+    Links.Clear();
+  }
+
+  void PrepareLinks()
+  {
+    while (Links.Size() < IDs.Size())
+      Links.AddNew();
+  }
+};
+
+#endif
+
+#ifdef SUPPORT_ALT_STREAMS
+
+struct CIndexToPathPair
 {
-  COM_TRY_BEGIN
-  _crcStream.Release();
-  *outStream = nullptr;
-  _outFileStream.Release();
+    UInt32 Index;
+    FString Path;
 
-  _encrypted = false;
-  _isSplit = false;
-  _curSize = 0;
-  _curSizeDefined = false;
-  _index = index;
+    CIndexToPathPair(UInt32 index): Index(index) {}
+    CIndexToPathPair(UInt32 index, const FString &path): Index(index), Path(path) {}
 
-  UString fullPath;
-
-  IInArchive *archive = _arc->Archive;
-  RINOK(_arc->GetItemPath(index, fullPath));
-  RINOK(IsArchiveItemFolder(archive, index, _fi.IsDir));
-
-  _filePath = fullPath;
-
-  {
-    NCOM::CPropVariant prop;
-    RINOK(archive->GetProperty(index, kpidPosition, &prop));
-    if (prop.vt != VT_EMPTY)
+    int Compare(const CIndexToPathPair &pair) const
     {
-      if (prop.vt != VT_UI8)
-        return E_FAIL;
-      _position = prop.uhVal.QuadPart;
-      _isSplit = true;
+        return MyCompare(Index, pair.Index);
     }
-  }
-    
-  RINOK(GetArchiveItemBoolProp(archive, index, kpidEncrypted, _encrypted));
+};
 
-  RINOK(GetUnpackSize());
+#endif
 
-  if (_wildcardCensor)
-  {
-    if (!_wildcardCensor->CheckPath(fullPath, !_fi.IsDir))
-      return S_OK;
-  }
-
-  if (askExtractMode == NArchive::NExtract::NAskMode::kExtract && !_testMode)
-  {
-    if (_stdOutMode)
-    {
-      CMyComPtr<ISequentialOutStream> outStreamLoc = new CStdOutFileStream;
-      *outStream = outStreamLoc.Detach();
-      return S_OK;
-    }
-
-    {
-      NCOM::CPropVariant prop;
-      RINOK(archive->GetProperty(index, kpidAttrib, &prop));
-      if (prop.vt == VT_UI4)
-      {
-        _fi.Attrib = prop.ulVal;
-        _fi.AttribDefined = true;
-      }
-      else if (prop.vt == VT_EMPTY)
-        _fi.AttribDefined = false;
-      else
-        return E_FAIL;
-    }
-
-    RINOK(GetTime(index, kpidCTime, _fi.CTime, _fi.CTimeDefined));
-    RINOK(GetTime(index, kpidATime, _fi.ATime, _fi.ATimeDefined));
-    RINOK(GetTime(index, kpidMTime, _fi.MTime, _fi.MTimeDefined));
-
-    bool isAnti = false;
-    RINOK(_arc->IsItemAnti(index, isAnti));
-
-    UStringVector pathParts;
-    SplitPathToParts(fullPath, pathParts);
-    
-    if (pathParts.IsEmpty())
-      return E_FAIL;
-    int numRemovePathParts = 0;
-    switch(_pathMode)
-    {
-      case NExtract::NPathMode::kFullPathnames:
-        break;
-      case NExtract::NPathMode::kCurrentPathnames:
-      {
-        numRemovePathParts = _removePathParts.Size();
-        if (pathParts.Size() <= numRemovePathParts)
-          return E_FAIL;
-        for (int i = 0; i < numRemovePathParts; i++)
-          if (_removePathParts[i].CompareNoCase(pathParts[i]) != 0)
-            return E_FAIL;
-        break;
-      }
-      case NExtract::NPathMode::kNoPathnames:
-      {
-        numRemovePathParts = pathParts.Size() - 1;
-        break;
-      }
-    }
-    pathParts.Delete(0, numRemovePathParts);
-    MakeCorrectPath(pathParts);
-    UString processedPath = MakePathNameFromParts(pathParts);
-    if (!isAnti)
-    {
-      if (!_fi.IsDir)
-      {
-        if (!pathParts.IsEmpty())
-          pathParts.DeleteBack();
-      }
-    
-      if (!pathParts.IsEmpty())
-      {
-        UString fullPathNew;
-        CreateComplexDirectory(pathParts, fullPathNew);
-        if (_fi.IsDir)
-          NFile::NDirectory::SetDirTime(fullPathNew,
-            (WriteCTime && _fi.CTimeDefined) ? &_fi.CTime : nullptr,
-            (WriteATime && _fi.ATimeDefined) ? &_fi.ATime : nullptr,
-            (WriteMTime && _fi.MTimeDefined) ? &_fi.MTime : (_arc->MTimeDefined ? &_arc->MTime : nullptr));
-      }
-    }
-
-
-    UString fullProcessedPath = _directoryPath + processedPath;
-   // LOGI("fullProcessedPath=%s",(LPCSTR)GetOemString(fullProcessedPath));
-
-    if (_fi.IsDir)
-    {
-    	//LOGI("fullProcessedPath is Dir =%s",(LPCSTR)GetOemString(fullProcessedPath));
-      _diskFilePath = fullProcessedPath;
-      if (isAnti)
-        NFile::NDirectory::MyRemoveDirectory(_diskFilePath);
-      return S_OK;
-    }
-
-    if (!_isSplit)
-    {
-    NFile::NFind::CFileInfoW fileInfo;
-    if (fileInfo.Find(fullProcessedPath))
-    {
-      switch(_overwriteMode)
-      {
-        case NExtract::NOverwriteMode::kSkipExisting:
-          return S_OK;
-        case NExtract::NOverwriteMode::kAskBefore:
-        {
-          Int32 overwiteResult;
-          RINOK(_extractCallback2->AskOverwrite(
-              fullProcessedPath, &fileInfo.MTime, &fileInfo.Size, fullPath,
-              _fi.MTimeDefined ? &_fi.MTime : nullptr,
-              _curSizeDefined ? &_curSize : nullptr,
-              &overwiteResult))
-
-          switch(overwiteResult)
-          {
-            case NOverwriteAnswer::kCancel:
-              return E_ABORT;
-            case NOverwriteAnswer::kNo:
-              return S_OK;
-            case NOverwriteAnswer::kNoToAll:
-              _overwriteMode = NExtract::NOverwriteMode::kSkipExisting;
-              return S_OK;
-            case NOverwriteAnswer::kYesToAll:
-              _overwriteMode = NExtract::NOverwriteMode::kWithoutPrompt;
-              break;
-            case NOverwriteAnswer::kYes:
-              break;
-            case NOverwriteAnswer::kAutoRename:
-              _overwriteMode = NExtract::NOverwriteMode::kAutoRename;
-              break;
-            default:
-              return E_FAIL;
-          }
-        }
-        case NExtract::NOverwriteMode::kWithoutPrompt:
-          break;
-        case NExtract::NOverwriteMode::kAutoRename:
-          break;
-        case NExtract::NOverwriteMode::kAutoRenameExisting:
-          break;
-      }
-      if (_overwriteMode == NExtract::NOverwriteMode::kAutoRename)
-      {
-        if (!AutoRenamePath(fullProcessedPath))
-        {
-          UString message = UString(kCantAutoRename) + fullProcessedPath;
-          RINOK(_extractCallback2->MessageError(message));
-          return E_FAIL;
-        }
-      }
-      else if (_overwriteMode == NExtract::NOverwriteMode::kAutoRenameExisting)
-      {
-        UString existPath = fullProcessedPath;
-        if (!AutoRenamePath(existPath))
-        {
-          UString message = kCantAutoRename + fullProcessedPath;
-          RINOK(_extractCallback2->MessageError(message));
-          return E_FAIL;
-        }
-        if (!NFile::NDirectory::MyMoveFile(fullProcessedPath, existPath))
-        {
-          UString message = UString(kCantRenameFile) + fullProcessedPath;
-          RINOK(_extractCallback2->MessageError(message));
-          return E_FAIL;
-        }
-      }
-      else
-        if (!NFile::NDirectory::DeleteFileAlways(fullProcessedPath))
-        {
-          UString message = UString(kCantDeleteOutputFile) +  fullProcessedPath;
-          RINOK(_extractCallback2->MessageError(message));
-          return S_OK;
-          // return E_FAIL;
-        }
-    }
-    }
-    if (!isAnti)
-    {
-      _outFileStreamSpec = new COutFileStream;
-      CMyComPtr<ISequentialOutStream> outStreamLoc(_outFileStreamSpec);
-      if (!_outFileStreamSpec->Open(fullProcessedPath, _isSplit ? OPEN_ALWAYS: CREATE_ALWAYS))
-      {
-        // if (::GetLastError() != ERROR_FILE_EXISTS || !isSplit)
-        {
-          UString message = L"can not open output file " + fullProcessedPath;
-          RINOK(_extractCallback2->MessageError(message));
-          return S_OK;
-        }
-      }
-      if (_isSplit)
-      {
-        RINOK(_outFileStreamSpec->Seek(_position, STREAM_SEEK_SET, nullptr));
-      }
-      _outFileStream = outStreamLoc;
-      *outStream = outStreamLoc.Detach();
-    }
-    _diskFilePath = fullProcessedPath;
-  }
-  else
-  {
-    *outStream = nullptr;
-  }
-  if (_crcMode)
-  {
-    _crcStreamSpec = new COutStreamWithCRC;
-    _crcStream = _crcStreamSpec;
-    CMyComPtr<ISequentialOutStream> crcStream = _crcStreamSpec;
-    _crcStreamSpec->SetStream(*outStream);
-    if (*outStream)
-      (*outStream)->Release();
-    *outStream = crcStream.Detach();
-    _crcStreamSpec->Init(true);
-  }
-  return S_OK;
-  COM_TRY_END
-}
-
-STDMETHODIMP CArchiveExtractCallback::PrepareOperation(Int32 askExtractMode)
+class CArchiveExtractCallback:
+        public IArchiveExtractCallback,
+        public IArchiveExtractCallbackMessage,
+        public ICryptoGetTextPassword,
+        public ICompressProgressInfo,
+        public CMyUnknownImp
 {
-  COM_TRY_BEGIN
-  _extractMode = false;
-  switch (askExtractMode)
-  {
-    case NArchive::NExtract::NAskMode::kExtract:
-      if (_testMode)
-        askExtractMode = NArchive::NExtract::NAskMode::kTest;
-      else
-        _extractMode = true;
-      break;
-  };
-  return _extractCallback2->PrepareOperation(_filePath, _fi.IsDir,
-      askExtractMode, _isSplit ? &_position: nullptr);
-  COM_TRY_END
-}
+    const CArc *_arc;
+    CExtractNtOptions _ntOptions;
 
-STDMETHODIMP CArchiveExtractCallback::SetOperationResult(Int32 operationResult)
-{
-  COM_TRY_BEGIN
-  switch(operationResult)
-  {
-    case NArchive::NExtract::NOperationResult::kOK:
-    case NArchive::NExtract::NOperationResult::kUnSupportedMethod:
-    case NArchive::NExtract::NOperationResult::kCRCError:
-    case NArchive::NExtract::NOperationResult::kDataError:
-      break;
-    default:
-      _outFileStream.Release();
-      return E_FAIL;
-  }
-  if (_crcStream)
-  {
-    CrcSum += _crcStreamSpec->GetCRC();
-    _curSize = _crcStreamSpec->GetSize();
-    _curSizeDefined = true;
-    _crcStream.Release();
-  }
-  if (_outFileStream)
-  {
-    _outFileStreamSpec->SetTime(
-        (WriteCTime && _fi.CTimeDefined) ? &_fi.CTime : NULL,
-        (WriteATime && _fi.ATimeDefined) ? &_fi.ATime : NULL,
-        (WriteMTime && _fi.MTimeDefined) ? &_fi.MTime : (_arc->MTimeDefined ? &_arc->MTime : NULL));
-    _curSize = _outFileStreamSpec->ProcessedSize;
-    _curSizeDefined = true;
-    RINOK(_outFileStreamSpec->Close());
-    _outFileStream.Release();
-  }
-  if (!_curSizeDefined)
-    GetUnpackSize();
-  if (_curSizeDefined)
-    UnpackSize += _curSize;
-  if (_fi.IsDir)
-    NumFolders++;
-  else
-    NumFiles++;
+    const NWildcard::CCensorNode *_wildcardCensor; // we need wildcard for single pass mode (stdin)
+    CMyComPtr<IFolderArchiveExtractCallback> _extractCallback2;
+    CMyComPtr<ICompressProgressInfo> _compressProgress;
+    CMyComPtr<ICryptoGetTextPassword> _cryptoGetTextPassword;
+    CMyComPtr<IArchiveExtractCallbackMessage> _callbackMessage;
+    CMyComPtr<IFolderArchiveExtractCallback2> _folderArchiveExtractCallback2;
 
-  if (_extractMode && _fi.AttribDefined)
-    NFile::NDirectory::MySetFileAttributes(_diskFilePath, _fi.Attrib);
-  RINOK(_extractCallback2->SetOperationResult(operationResult, _encrypted));
-  return S_OK;
-  COM_TRY_END
-}
+    FString _dirPathPrefix;
+    FString _dirPathPrefix_Full;
+    NExtract::NPathMode::EEnum _pathMode;
+    NExtract::NOverwriteMode::EEnum _overwriteMode;
 
-/*
-STDMETHODIMP CArchiveExtractCallback::GetInStream(
-    const wchar_t *name, ISequentialInStream **inStream)
-{
-  COM_TRY_BEGIN
-  CInFileStream *inFile = new CInFileStream;
-  CMyComPtr<ISequentialInStream> inStreamTemp = inFile;
-  if (!inFile->Open(_srcDirectoryPrefix + name))
-    return ::GetLastError();
-  *inStream = inStreamTemp.Detach();
-  return S_OK;
-  COM_TRY_END
-}
-*/
+#ifndef _SFX
 
-STDMETHODIMP CArchiveExtractCallback::CryptoGetTextPassword(BSTR *password)
-{
-  COM_TRY_BEGIN
-  if (!_cryptoGetTextPassword)
-  {
-    RINOK(_extractCallback2.QueryInterface(IID_ICryptoGetTextPassword,
-        &_cryptoGetTextPassword));
-  }
-  return _cryptoGetTextPassword->CryptoGetTextPassword(password);
-  COM_TRY_END
-}
+    CMyComPtr<IFolderExtractToStreamCallback> ExtractToStreamCallback;
+    CGetProp *GetProp_Spec;
+    CMyComPtr<IGetProp> GetProp;
 
+#endif
+
+    CReadArcItem _item;
+    FString _diskFilePath;
+    UInt64 _position;
+    bool _isSplit;
+
+    bool _extractMode;
+
+    bool WriteCTime;
+    bool WriteATime;
+    bool WriteMTime;
+
+    bool _encrypted;
+
+    struct CProcessedFileInfo
+    {
+        FILETIME CTime;
+        FILETIME ATime;
+        FILETIME MTime;
+        UInt32 Attrib;
+
+        bool CTimeDefined;
+        bool ATimeDefined;
+        bool MTimeDefined;
+        bool AttribDefined;
+    } _fi;
+
+    UInt32 _index;
+    UInt64 _curSize;
+    bool _curSizeDefined;
+    COutFileStream *_outFileStreamSpec;
+    CMyComPtr<ISequentialOutStream> _outFileStream;
+
+#ifndef _SFX
+
+    COutStreamWithHash *_hashStreamSpec;
+    CMyComPtr<ISequentialOutStream> _hashStream;
+    bool _hashStreamWasUsed;
+
+#endif
+
+    bool _removePartsForAltStreams;
+    UStringVector _removePathParts;
+
+#ifndef _SFX
+    bool _use_baseParentFolder_mode;
+    UInt32 _baseParentFolder;
+#endif
+
+    bool _stdOutMode;
+    bool _testMode;
+    bool _multiArchives;
+
+    CMyComPtr<ICompressProgressInfo> _localProgress;
+    UInt64 _packTotal;
+
+    UInt64 _progressTotal;
+    bool _progressTotal_Defined;
+
+    FStringVector _extractedFolderPaths;
+    CRecordVector<UInt32> _extractedFolderIndices;
+
+#if defined(_WIN32) && !defined(UNDER_CE) && !defined(_SFX)
+    bool _saclEnabled;
+#endif
+
+    CObjectVector<NWindows::NFile::NDir::CDelayedSymLink> _delayedSymLinks;
+
+    void CreateComplexDirectory(const UStringVector &dirPathParts, FString &fullPath);
+    HRESULT GetTime(int index, PROPID propID, FILETIME &filetime, bool &filetimeIsDefined);
+    HRESULT GetUnpackSize();
+
+    HRESULT SendMessageError(const char *message, const FString &path);
+    HRESULT SendMessageError_with_LastError(const char *message, const FString &path);
+    HRESULT SendMessageError2(const char *message, const FString &path1, const FString &path2);
+
+public:
+
+    CLocalProgress *LocalProgressSpec;
+
+    UInt64 NumFolders;
+    UInt64 NumFiles;
+    UInt64 NumAltStreams;
+    UInt64 UnpackSize;
+    UInt64 AltStreams_UnpackSize;
+
+    MY_UNKNOWN_IMP3(IArchiveExtractCallbackMessage, ICryptoGetTextPassword, ICompressProgressInfo)
+
+    INTERFACE_IArchiveExtractCallback(;)
+    INTERFACE_IArchiveExtractCallbackMessage(;)
+
+    STDMETHOD(SetRatioInfo)(const UInt64 *inSize, const UInt64 *outSize);
+
+    STDMETHOD(CryptoGetTextPassword)(BSTR *password);
+
+    CArchiveExtractCallback();
+
+    void InitForMulti(bool multiArchives,
+                      NExtract::NPathMode::EEnum pathMode,
+                      NExtract::NOverwriteMode::EEnum overwriteMode)
+    {
+        _multiArchives = multiArchives;
+        _pathMode = pathMode;
+        _overwriteMode = overwriteMode;
+        NumFolders = NumFiles = NumAltStreams = UnpackSize = AltStreams_UnpackSize = 0;
+    }
+
+#ifndef _SFX
+
+    void SetHashMethods(IHashCalc *hash)
+    {
+        if (!hash)
+            return;
+        _hashStreamSpec = new COutStreamWithHash;
+        _hashStream = _hashStreamSpec;
+        _hashStreamSpec->_hash = hash;
+    }
+
+#endif
+
+    void Init(
+            const CExtractNtOptions &ntOptions,
+            const NWildcard::CCensorNode *wildcardCensor,
+            const CArc *arc,
+            IFolderArchiveExtractCallback *extractCallback2,
+            bool stdOutMode, bool testMode,
+            const FString &directoryPath,
+            const UStringVector &removePathParts, bool removePartsForAltStreams,
+            UInt64 packSize);
+
+
+#ifdef SUPPORT_LINKS
+
+    private:
+  CHardLinks _hardLinks;
+  UString linkPath;
+
+  // FString _CopyFile_Path;
+  // HRESULT MyCopyFile(ISequentialOutStream *outStream);
+
+public:
+  // call PrepareHardLinks() after Init()
+  HRESULT PrepareHardLinks(const CRecordVector<UInt32> *realIndices);  // NULL means all items
+
+#endif
+
+
+#ifdef SUPPORT_ALT_STREAMS
+    CObjectVector<CIndexToPathPair> _renamedFiles;
+#endif
+
+    // call it after Init()
+
+#ifndef _SFX
+    void SetBaseParentFolderIndex(UInt32 indexInArc)
+    {
+        _baseParentFolder = indexInArc;
+        _use_baseParentFolder_mode = true;
+    }
+#endif
+
+    HRESULT SetDirsTimes();
+};
+
+bool CensorNode_CheckPath(const NWildcard::CCensorNode &node, const CReadArcItem &item);
+
+#endif

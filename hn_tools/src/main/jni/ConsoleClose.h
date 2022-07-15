@@ -5,21 +5,21 @@
 
 namespace NConsoleClose {
 
-bool TestBreakSignal();
+    bool TestBreakSignal();
 
-class CCtrlHandlerSetter
-{
-  void (*memo_sig_int)(int);
-  void (*memo_sig_term)(int);
-public:
-  CCtrlHandlerSetter();
-  virtual ~CCtrlHandlerSetter();
-};
+    class CCtrlHandlerSetter
+    {
+        void (*memo_sig_int)(int);
+        void (*memo_sig_term)(int);
+    public:
+        CCtrlHandlerSetter();
+        virtual ~CCtrlHandlerSetter();
+    };
 
-class CCtrlBreakException 
-{};
+    class CCtrlBreakException
+    {};
 
-void CheckCtrlBreak();
+    void CheckCtrlBreak();
 
 }
 

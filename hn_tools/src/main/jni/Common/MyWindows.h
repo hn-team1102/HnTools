@@ -200,6 +200,7 @@ MY_EXTERN_C BSTR SysAllocString(const OLECHAR *sz);
 MY_EXTERN_C void SysFreeString(BSTR bstr);
 MY_EXTERN_C UINT SysStringByteLen(BSTR bstr);
 MY_EXTERN_C UINT SysStringLen(BSTR bstr);
+MY_EXTERN_C BSTR SysAllocStringLen(const OLECHAR*,UINT);
 
 /* MY_EXTERN_C DWORD GetLastError(); */
 MY_EXTERN_C LONG CompareFileTime(const FILETIME* ft1, const FILETIME* ft2);

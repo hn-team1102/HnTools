@@ -14,63 +14,81 @@
 
 #include "LoadCodecs.h"
 
-struct CExtractOptions
+struct CExtractOptionsBase
 {
-  bool StdInMode;
-  bool StdOutMode;
-  bool YesToAll;
-  bool TestMode;
-  bool CalcCrc;
-  NExtract::NPathMode::EEnum PathMode;
-  NExtract::NOverwriteMode::EEnum OverwriteMode;
-  UString OutputDir;
-  
-  // bool ShowDialog;
-  // bool PasswordEnabled;
-  // UString Password;
-  #if !defined(_7ZIP_ST) && !defined(_SFX)
-  CObjectVector<CProperty> Properties;
-  #endif
+    CBoolPair ElimDup;
 
-  #ifdef EXTERNAL_CODECS
-  CCodecs *Codecs;
-  #endif
+    bool PathMode_Force;
+    bool OverwriteMode_Force;
+    NExtract::NPathMode::EEnum PathMode;
+    NExtract::NOverwriteMode::EEnum OverwriteMode;
 
-  CExtractOptions():
-      StdInMode(false),
-      StdOutMode(false),
-      YesToAll(false),
-      TestMode(false),
-      CalcCrc(false),
-      PathMode(NExtract::NPathMode::kFullPathnames),
-      OverwriteMode(NExtract::NOverwriteMode::kAskBefore)
-      {}
+    FString OutputDir;
+    CExtractNtOptions NtOptions;
+
+    CExtractOptionsBase():
+            PathMode_Force(false),
+            OverwriteMode_Force(false),
+            PathMode(NExtract::NPathMode::kFullPaths),
+            OverwriteMode(NExtract::NOverwriteMode::kAsk)
+    {}
+};
+
+struct CExtractOptions: public CExtractOptionsBase
+{
+    bool StdInMode;
+    bool StdOutMode;
+    bool YesToAll;
+    bool TestMode;
+
+    // bool ShowDialog;
+    // bool PasswordEnabled;
+    // UString Password;
+#ifndef _SFX
+    CObjectVector<CProperty> Properties;
+#endif
+
+#ifdef EXTERNAL_CODECS
+    CCodecs *Codecs;
+#endif
+
+    CExtractOptions():
+            TestMode(false),
+            StdInMode(false),
+            StdOutMode(false),
+            YesToAll(false)
+    {}
 };
 
 struct CDecompressStat
 {
-  UInt64 NumArchives;
-  UInt64 UnpackSize;
-  UInt64 PackSize;
-  UInt64 NumFolders;
-  UInt64 NumFiles;
-  UInt32 CrcSum;
+    UInt64 NumArchives;
+    UInt64 UnpackSize;
+    UInt64 AltStreams_UnpackSize;
+    UInt64 PackSize;
+    UInt64 NumFolders;
+    UInt64 NumFiles;
+    UInt64 NumAltStreams;
 
-  void Clear()
-  {
-    NumArchives = UnpackSize = PackSize = NumFolders = NumFiles = 0;
-    CrcSum = 0;
-  }
+    void Clear()
+    {
+      NumArchives = UnpackSize = AltStreams_UnpackSize = PackSize = NumFolders = NumFiles = NumAltStreams = 0;
+    }
 };
 
-HRESULT DecompressArchives(
-    CCodecs *codecs, const CIntVector &formatIndices,
-    UStringVector &archivePaths, UStringVector &archivePathsFull,
-    const NWildcard::CCensorNode &wildcardCensor,
-    const CExtractOptions &options,
-    IOpenCallbackUI *openCallback,
-    IExtractCallbackUI *extractCallback,
-    UString &errorMessage,
-    CDecompressStat &stat);
+HRESULT Extract(
+        CCodecs *codecs,
+        const CObjectVector<COpenType> &types,
+        const CIntVector &excludedFormats,
+        UStringVector &archivePaths, UStringVector &archivePathsFull,
+        const NWildcard::CCensorNode &wildcardCensor,
+        const CExtractOptions &options,
+        IOpenCallbackUI *openCallback,
+        IExtractCallbackUI *extractCallback,
+#ifndef _SFX
+        IHashCalc *hash,
+#endif
+        UString &errorMessage,
+        CDecompressStat &st);
 
 #endif
