@@ -8,6 +8,7 @@
 #endif
 
 #include "Common/MyString.h"
+#include "myWindows/StdAfx.h"
 
 #ifdef USE_WIN_FILE
 #include "../../Windows/FileIO.h"

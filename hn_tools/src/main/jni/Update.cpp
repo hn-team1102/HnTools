@@ -14,6 +14,7 @@
 #include "Windows/PropVariant.h"
 #include "Windows/PropVariantConversions.h"
 #include "Windows/TimeUtils.h"
+#include <Common/CopyCoder.h>
 
 #include "FileStreams.h"
 #include "Common/LimitedStreams.h"

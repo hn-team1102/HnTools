@@ -33,39 +33,39 @@ inline bool IsPathSepar(wchar_t c) { return IS_PATH_SEPAR(c); }
 
 inline unsigned MyStringLen(const char *s)
 {
-  unsigned i;
-  for (i = 0; s[i] != 0; i++);
-  return i;
+    unsigned i;
+    for (i = 0; s[i] != 0; i++);
+    return i;
 }
 
 inline void MyStringCopy(char *dest, const char *src)
 {
-  while ((*dest++ = *src++) != 0);
+    while ((*dest++ = *src++) != 0);
 }
 
 inline char *MyStpCpy(char *dest, const char *src)
 {
-  for (;;)
-  {
-    char c = *src;
-    *dest = c;
-    if (c == 0)
-      return dest;
-    src++;
-    dest++;
-  }
+    for (;;)
+    {
+        char c = *src;
+        *dest = c;
+        if (c == 0)
+            return dest;
+        src++;
+        dest++;
+    }
 }
 
 inline unsigned MyStringLen(const wchar_t *s)
 {
-  unsigned i;
-  for (i = 0; s[i] != 0; i++);
-  return i;
+    unsigned i;
+    for (i = 0; s[i] != 0; i++);
+    return i;
 }
 
 inline void MyStringCopy(wchar_t *dest, const wchar_t *src)
 {
-  while ((*dest++ = *src++) != 0);
+    while ((*dest++ = *src++) != 0);
 }
 
 /*
@@ -113,33 +113,33 @@ inline wchar_t MyCharUpper_Ascii(wchar_t c)
 
 inline char MyCharLower_Ascii(char c)
 {
-  if (c >= 'A' && c <= 'Z')
-    return (char)((unsigned char)c + 0x20);
-  return c;
+    if (c >= 'A' && c <= 'Z')
+        return (char)((unsigned char)c + 0x20);
+    return c;
 }
 
 inline wchar_t MyCharLower_Ascii(wchar_t c)
 {
-  if (c >= 'A' && c <= 'Z')
-    return (wchar_t)(c + 0x20);
-  return c;
+    if (c >= 'A' && c <= 'Z')
+        return (wchar_t)(c + 0x20);
+    return c;
 }
 
 wchar_t MyCharUpper_WIN(wchar_t c) throw();
 
 inline wchar_t MyCharUpper(wchar_t c) throw()
 {
-  if (c < 'a') return c;
-  if (c <= 'z') return (wchar_t)(c - 0x20);
-  if (c <= 0x7F) return c;
+    if (c < 'a') return c;
+    if (c <= 'z') return (wchar_t)(c - 0x20);
+    if (c <= 0x7F) return c;
 #ifdef _WIN32
-  #ifdef _UNICODE
+    #ifdef _UNICODE
       return (wchar_t)(unsigned)(UINT_PTR)CharUpperW((LPWSTR)(UINT_PTR)(unsigned)c);
     #else
       return (wchar_t)MyCharUpper_WIN(c);
     #endif
 #else
-  return (wchar_t)towupper(c);
+    return (wchar_t)towupper(c);
 #endif
 }
 
@@ -199,7 +199,7 @@ class AString
 
     void MoveItems(unsigned dest, unsigned src)
     {
-      memmove(_chars + dest, _chars + src, (size_t)(_len - src + 1) * sizeof(char));
+        memmove(_chars + dest, _chars + src, (size_t)(_len - src + 1) * sizeof(char));
     }
 
     void InsertSpace(unsigned &index, unsigned size);
@@ -257,27 +257,27 @@ public:
        9.35: GetBuf doesn't preserve old characters and terminator */
     char *GetBuf(unsigned minLen)
     {
-      if (minLen > _limit)
-        ReAlloc2(minLen);
-      return _chars;
+        if (minLen > _limit)
+            ReAlloc2(minLen);
+        return _chars;
     }
     char *GetBuf_SetEnd(unsigned minLen)
     {
-      if (minLen > _limit)
-        ReAlloc2(minLen);
-      char *chars = _chars;
-      chars[minLen] = 0;
-      _len = minLen;
-      return chars;
+        if (minLen > _limit)
+            ReAlloc2(minLen);
+        char *chars = _chars;
+        chars[minLen] = 0;
+        _len = minLen;
+        return chars;
     }
 
     void ReleaseBuf_SetLen(unsigned newLen) { _len = newLen; }
     void ReleaseBuf_SetEnd(unsigned newLen) { _len = newLen; _chars[newLen] = 0; }
     void ReleaseBuf_CalcLen(unsigned maxLen)
     {
-      char *chars = _chars;
-      chars[maxLen] = 0;
-      _len = MyStringLen(chars);
+        char *chars = _chars;
+        chars[maxLen] = 0;
+        _len = MyStringLen(chars);
     }
 
     AString &operator=(char c);
@@ -288,14 +288,14 @@ public:
 
     AString &operator+=(char c)
     {
-      if (_limit == _len)
-        Grow_1();
-      unsigned len = _len;
-      char *chars = _chars;
-      chars[len++] = c;
-      chars[len] = 0;
-      _len = len;
-      return *this;
+        if (_limit == _len)
+            Grow_1();
+        unsigned len = _len;
+        char *chars = _chars;
+        chars[len++] = c;
+        chars[len] = 0;
+        _len = len;
+        return *this;
     }
 
     void Add_Space();
@@ -321,25 +321,27 @@ public:
 
     bool IsEqualTo(const char *s) const { return strcmp(_chars, s) == 0; }
     bool IsEqualTo_Ascii_NoCase(const char *s) const { return StringsAreEqualNoCase_Ascii(_chars, s); }
-//     int CompareNoCase(const char *s) const { return MyStringCompareNoCase(_chars, s); }
-//     int CompareNoCase(const AString &s) const { return MyStringCompareNoCase(_chars, s._chars); }
+    // int Compare(const char *s) const { return MyStringCompare(_chars, s); }
+    // int Compare(const AString &s) const { return MyStringCompare(_chars, s._chars); }
+    // int CompareNoCase(const char *s) const { return MyStringCompareNoCase(_chars, s); }
+    // int CompareNoCase(const AString &s) const { return MyStringCompareNoCase(_chars, s._chars); }
     bool IsPrefixedBy(const char *s) const { return IsString1PrefixedByString2(_chars, s); }
     bool IsPrefixedBy_Ascii_NoCase(const char *s) const throw();
 
     bool IsAscii() const
     {
-      unsigned len = Len();
-      const char *s = _chars;
-      for (unsigned i = 0; i < len; i++)
-        if ((unsigned char)s[i] >= 0x80)
-          return false;
-      return true;
+        unsigned len = Len();
+        const char *s = _chars;
+        for (unsigned i = 0; i < len; i++)
+            if ((unsigned char)s[i] >= 0x80)
+                return false;
+        return true;
     }
     int Find(char c) const { return FindCharPosInString(_chars, c); }
     int Find(char c, unsigned startIndex) const
     {
-      int pos = FindCharPosInString(_chars + startIndex, c);
-      return pos < 0 ? -1 : (int)startIndex + pos;
+        int pos = FindCharPosInString(_chars + startIndex, c);
+        return pos < 0 ? -1 : (int)startIndex + pos;
     }
 
     int ReverseFind(char c) const throw();
@@ -353,8 +355,8 @@ public:
     void TrimRight() throw();
     void Trim()
     {
-      TrimRight();
-      TrimLeft();
+        TrimRight();
+        TrimLeft();
     }
 
     void InsertAtFront(char c);
@@ -373,11 +375,11 @@ public:
     void DeleteBack() { _chars[--_len] = 0; }
     void DeleteFrom(unsigned index)
     {
-      if (index < _len)
-      {
-        _len = index;
-        _chars[index] = 0;
-      }
+        if (index < _len)
+        {
+            _len = index;
+            _chars[index] = 0;
+        }
     }
 };
 
@@ -425,7 +427,7 @@ class UString
 
     void MoveItems(unsigned dest, unsigned src)
     {
-      memmove(_chars + dest, _chars + src, (size_t)(_len - src + 1) * sizeof(wchar_t));
+        memmove(_chars + dest, _chars + src, (size_t)(_len - src + 1) * sizeof(wchar_t));
     }
 
     void InsertSpace(unsigned index, unsigned size);
@@ -450,6 +452,7 @@ class UString
 
     // ---------- forbidden functions ----------
 
+    UString &operator+=(char c);
     UString &operator+=(unsigned char c);
     UString &operator=(char c);
     UString &operator=(unsigned char c);
@@ -489,27 +492,27 @@ public:
 
     wchar_t *GetBuf(unsigned minLen)
     {
-      if (minLen > _limit)
-        ReAlloc2(minLen);
-      return _chars;
+        if (minLen > _limit)
+            ReAlloc2(minLen);
+        return _chars;
     }
     wchar_t *GetBuf_SetEnd(unsigned minLen)
     {
-      if (minLen > _limit)
-        ReAlloc2(minLen);
-      wchar_t *chars = _chars;
-      chars[minLen] = 0;
-      _len = minLen;
-      return chars;
+        if (minLen > _limit)
+            ReAlloc2(minLen);
+        wchar_t *chars = _chars;
+        chars[minLen] = 0;
+        _len = minLen;
+        return chars;
     }
 
     void ReleaseBuf_SetLen(unsigned newLen) { _len = newLen; }
     void ReleaseBuf_SetEnd(unsigned newLen) { _len = newLen; _chars[newLen] = 0; }
     void ReleaseBuf_CalcLen(unsigned maxLen)
     {
-      wchar_t *chars = _chars;
-      chars[maxLen] = 0;
-      _len = MyStringLen(chars);
+        wchar_t *chars = _chars;
+        chars[maxLen] = 0;
+        _len = MyStringLen(chars);
     }
 
     UString &operator=(wchar_t c);
@@ -519,14 +522,14 @@ public:
 
     UString &operator+=(wchar_t c)
     {
-      if (_limit == _len)
-        Grow_1();
-      unsigned len = _len;
-      wchar_t *chars = _chars;
-      chars[len++] = c;
-      chars[len] = 0;
-      _len = len;
-      return *this;
+        if (_limit == _len)
+            Grow_1();
+        unsigned len = _len;
+        wchar_t *chars = _chars;
+        chars[len++] = c;
+        chars[len] = 0;
+        _len = len;
+        return *this;
     }
 
     void Add_Space();
@@ -563,18 +566,18 @@ public:
 
     bool IsAscii() const
     {
-      unsigned len = Len();
-      const wchar_t *s = _chars;
-      for (unsigned i = 0; i < len; i++)
-        if (s[i] >= 0x80)
-          return false;
-      return true;
+        unsigned len = Len();
+        const wchar_t *s = _chars;
+        for (unsigned i = 0; i < len; i++)
+            if (s[i] >= 0x80)
+                return false;
+        return true;
     }
     int Find(wchar_t c) const { return FindCharPosInString(_chars, c); }
     int Find(wchar_t c, unsigned startIndex) const
     {
-      int pos = FindCharPosInString(_chars + startIndex, c);
-      return pos < 0 ? -1 : (int)startIndex + pos;
+        int pos = FindCharPosInString(_chars + startIndex, c);
+        return pos < 0 ? -1 : (int)startIndex + pos;
     }
 
     int ReverseFind(wchar_t c) const throw();
@@ -588,8 +591,8 @@ public:
     void TrimRight() throw();
     void Trim()
     {
-      TrimRight();
-      TrimLeft();
+        TrimRight();
+        TrimLeft();
     }
 
     void InsertAtFront(wchar_t c);
@@ -608,14 +611,12 @@ public:
     void DeleteBack() { _chars[--_len] = 0; }
     void DeleteFrom(unsigned index)
     {
-      if (index < _len)
-      {
-        _len = index;
-        _chars[index] = 0;
-      }
+        if (index < _len)
+        {
+            _len = index;
+            _chars[index] = 0;
+        }
     }
-
-    UString &operator+=(char c);
 };
 
 bool operator<(const UString &s1, const UString &s2);
@@ -691,9 +692,9 @@ public:
 
     wchar_t *GetBuf(unsigned minLen)
     {
-      if (!_chars || minLen > _len)
-        ReAlloc2(minLen);
-      return _chars;
+        if (!_chars || minLen > _len)
+            ReAlloc2(minLen);
+        return _chars;
     }
     void ReleaseBuf_SetLen(unsigned newLen) { _len = newLen; }
 
@@ -728,6 +729,7 @@ void operator+(const UString2 &s, unsigned char c);
 void operator+(char c, const UString2 &s);
 void operator+(unsigned char c, const UString2 &s);
 void operator-(const UString2 &s1, wchar_t c);
+
 
 
 

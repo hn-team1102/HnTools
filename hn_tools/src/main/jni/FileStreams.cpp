@@ -39,7 +39,7 @@ CInFileStream::CInFileStream(bool b):
   BufSize(0),
 #endif
         SupportHardLinks(false),
-        Callback(nullptr),
+        Callback(NULL),
         CallbackRef(0)
 {
   _ignoreSymbolicLink = b;
