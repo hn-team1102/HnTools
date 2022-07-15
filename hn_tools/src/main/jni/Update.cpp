@@ -13,7 +13,7 @@
 #include "Windows/FileName.h"
 #include "Windows/PropVariant.h"
 #include "Windows/PropVariantConversions.h"
-#include "Windows/time.h"
+#include "Windows/TimeUtils.h"
 
 #include "FileStreams.h"
 #include "Common/LimitedStreams.h"
@@ -358,43 +358,43 @@ static const char *kSFXExtension =
         "";
 #endif
 
-bool CUpdateOptions::Init(const CCodecs *codecs, const CIntVector &formatIndices, const UString &arcPath)
-{
-  if (formatIndices.Size() > 1)
-    return false;
-  int arcTypeIndex = -1;
-  if (formatIndices.Size() != 0)
-    arcTypeIndex = formatIndices[0];
-  if (arcTypeIndex >= 0)
-    MethodMode.FormatIndex = arcTypeIndex;
-  else
-  {
-    MethodMode.FormatIndex = codecs->FindFormatForArchiveName(arcPath);
-    // It works incorrectly for update command if archive has some non-default extension!
-    if (MethodMode.FormatIndex < 0)
-      MethodMode.FormatIndex = codecs->FindFormatForArchiveType(kDefaultArchiveType);
-  }
-  if (MethodMode.FormatIndex < 0)
-    return false;
-  const CArcInfoEx &arcInfo = codecs->Formats[MethodMode.FormatIndex];
-  if (!arcInfo.UpdateEnabled)
-    return false;
-  UString typeExt = arcInfo.GetMainExt();
-  UString ext = typeExt;
-  if (SfxMode)
-    ext = kSFXExtension;
-  ArchivePath.BaseExtension = ext;
-  ArchivePath.VolExtension = typeExt;
-  ArchivePath.ParseFromPath(arcPath);
-  for (int i = 0; i < Commands.Size(); i++)
-  {
-    CUpdateArchiveCommand &uc = Commands[i];
-    uc.ArchivePath.BaseExtension = ext;
-    uc.ArchivePath.VolExtension = typeExt;
-    uc.ArchivePath.ParseFromPath(uc.UserArchivePath);
-  }
-  return true;
-}
+//bool CUpdateOptions::Init(const CCodecs *codecs, const CIntVector &formatIndices, const UString &arcPath)
+//{
+//  if (formatIndices.Size() > 1)
+//    return false;
+//  int arcTypeIndex = -1;
+//  if (formatIndices.Size() != 0)
+//    arcTypeIndex = formatIndices[0];
+//  if (arcTypeIndex >= 0)
+//    MethodMode.FormatIndex = arcTypeIndex;
+//  else
+//  {
+//    MethodMode.FormatIndex = codecs->FindFormatForArchiveName(arcPath);
+//    // It works incorrectly for update command if archive has some non-default extension!
+//    if (MethodMode.FormatIndex < 0)
+//      MethodMode.FormatIndex = codecs->FindFormatForArchiveType(kDefaultArchiveType);
+//  }
+//  if (MethodMode.FormatIndex < 0)
+//    return false;
+//  const CArcInfoEx &arcInfo = codecs->Formats[MethodMode.FormatIndex];
+//  if (!arcInfo.UpdateEnabled)
+//    return false;
+//  UString typeExt = arcInfo.GetMainExt();
+//  UString ext = typeExt;
+//  if (SfxMode)
+//    ext = kSFXExtension;
+//  ArchivePath.BaseExtension = ext;
+//  ArchivePath.VolExtension = typeExt;
+//  ArchivePath.ParseFromPath(arcPath);
+//  for (int i = 0; i < Commands.Size(); i++)
+//  {
+//    CUpdateArchiveCommand &uc = Commands[i];
+//    uc.ArchivePath.BaseExtension = ext;
+//    uc.ArchivePath.VolExtension = typeExt;
+//    uc.ArchivePath.ParseFromPath(uc.UserArchivePath);
+//  }
+//  return true;
+//}
 
 bool CUpdateOptions::InitFormatIndex(const CCodecs *codecs,
                                      const CObjectVector<COpenType> &types, const UString &arcPath)
