@@ -9,6 +9,7 @@
 
 #include <sys/types.h> /* for DIR */
 #include <dirent.h>
+#include "windows.h"
 
 namespace NWindows {
     namespace NFile {
