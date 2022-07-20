@@ -3,10 +3,10 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver.utils.compression;
+package hn.tools.zip.utils.compression;
 
 
-import static com.mg.zeearchiver.utils.Constants.EMethodID;
+import static hn.tools.zip.utils.Constants.EMethodID;
 
 public class CFormatInfo
 {

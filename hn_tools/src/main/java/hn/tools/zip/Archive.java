@@ -3,11 +3,11 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver;
+package hn.tools.zip;
 
 import android.util.Log;
 
-import com.mg.zeearchiver.data.ArchiveItemsList;
+import hn.tools.zip.data.ArchiveItemsList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -54,7 +54,7 @@ public class Archive {
     public native int listArchive(String archPath, String outputFileName);
 
     /**
-     * opens th archive in listing mode and returns a list of items in {@link com.mg.zeearchiver.data.ArchiveItemsList }
+     * opens th archive in listing mode and returns a list of items in {@link ArchiveItemsList }
      *
      * @param archPath  archive name including path
      * @param itemsList passed {@link ArchiveItemsList } object. After successful return this should
@@ -80,17 +80,17 @@ public class Archive {
      * @param archFullName          archive name including path
      * @param itemsPaths            paths of the files to compress
      * @param length                number of files in the archive
-     * @param level                 @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param dictionary            @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param wordSize              @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param orderMode             @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param solidDefined          @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param SolidBlockSize        @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param method                @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param encryptionMethod      @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param formatIndex           @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param encryptHeaders        @see {@link com.mg.zeearchiver.utils.Constants }
-     * @param encryptHeadersAllowed @see {@link com.mg.zeearchiver.utils.Constants }
+     * @param level                 @see {@link hn.tools.zip.utils.Constants }
+     * @param dictionary            @see {@link hn.tools.zip.utils.Constants }
+     * @param wordSize              @see {@link hn.tools.zip.utils.Constants }
+     * @param orderMode             @see {@link hn.tools.zip.utils.Constants }
+     * @param solidDefined          @see {@link hn.tools.zip.utils.Constants }
+     * @param SolidBlockSize        @see {@link hn.tools.zip.utils.Constants }
+     * @param method                @see {@link hn.tools.zip.utils.Constants }
+     * @param encryptionMethod      @see {@link hn.tools.zip.utils.Constants }
+     * @param formatIndex           @see {@link hn.tools.zip.utils.Constants }
+     * @param encryptHeaders        @see {@link hn.tools.zip.utils.Constants }
+     * @param encryptHeadersAllowed @see {@link hn.tools.zip.utils.Constants }
      * @param pass                  password to encrypt and secure the archive
      * @param multiThread           enable multi-threading
      * @param callback              a callback to be invocked on multiple events along the compression process(completion ,error ,password....)

@@ -3,19 +3,19 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver.utils.compression;
-
-import static com.mg.zeearchiver.utils.Constants.EEnum;
+package hn.tools.zip.utils.compression;
 
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Vector;
 
+import hn.tools.zip.utils.Constants;
+
 /**
  * Compression session info
  */
 public class CInfo {
-    public EEnum UpdateMode;
+    public Constants.EEnum UpdateMode;
     public boolean SolidIsSpecified;
     public boolean MultiThreadIsAllowed;
     public long SolidBlockSize;
@@ -63,7 +63,7 @@ public class CInfo {
     }
 
     public void init7Z(@Nullable String password, @Nullable String outputPath, int compressLevel) {
-        UpdateMode = EEnum.kAdd;
+        UpdateMode = Constants.EEnum.kAdd;
         SolidIsSpecified = true;
         MultiThreadIsAllowed = true;
         SolidBlockSize = -2147483648;
@@ -88,7 +88,7 @@ public class CInfo {
     }
 
     public void initTar(String password, String outputPath) {
-        UpdateMode = EEnum.kAdd;
+        UpdateMode = Constants.EEnum.kAdd;
         SolidIsSpecified = false;
         MultiThreadIsAllowed = false;
         SolidBlockSize = 0;
@@ -114,7 +114,7 @@ public class CInfo {
     }
 
     public void initZip(@Nullable String password, @Nullable String outputPath, int compressLevel) {
-        UpdateMode = EEnum.kAdd;
+        UpdateMode = Constants.EEnum.kAdd;
         SolidIsSpecified = false;
         MultiThreadIsAllowed = true;
         SolidBlockSize = 0;

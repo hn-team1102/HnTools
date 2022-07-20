@@ -3,9 +3,9 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver.utils;
+package hn.tools.zip.utils;
 
-import com.mg.zeearchiver.utils.compression.CFormatInfo;
+import hn.tools.zip.utils.compression.CFormatInfo;
 
 public class Constants {
 

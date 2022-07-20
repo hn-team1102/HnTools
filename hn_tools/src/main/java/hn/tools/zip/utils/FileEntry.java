@@ -3,7 +3,7 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver.utils;
+package hn.tools.zip.utils;
 
 import java.io.File;
 

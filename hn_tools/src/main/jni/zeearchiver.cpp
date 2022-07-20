@@ -3,7 +3,7 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-#include "com_mg_zeearchiver_Archive.h"
+#include "hn_tools_zip_Archive.h"
 #include <android/log.h>
 
 
@@ -520,7 +520,7 @@ void JNI_OnUnload(JavaVM *, void *) {
 extern "C" {
 #endif
 
-JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_print7zInfo
+JNIEXPORT void JNICALL Java_hn_tools_zip_Archive_print7zInfo
 
         (JNIEnv *env, jobject obj) {
     memset(&environment, 0, sizeof(Environment));
@@ -532,7 +532,7 @@ JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_print7zInfo
     ProcessCommand(2, args, environment);
 }
 
-JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive
+JNIEXPORT jint JNICALL Java_hn_tools_zip_Archive_listArchive
         (JNIEnv *env, jobject obj, jstring path, jstring stdoutFilePath) {
     if (jvm) {
         jvm->AttachCurrentThread(&env, NULL);
@@ -563,7 +563,7 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive
     return ret;
 }
 
-JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
+JNIEXPORT jint JNICALL Java_hn_tools_zip_Archive_listArchive2
         (JNIEnv *env, jobject obj, jstring path, jobject itemsList, jstring password) {
     try {
         if (jvm) {
@@ -614,7 +614,7 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_listArchive2
     }
 }
 
-JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_extractArchive
+JNIEXPORT jint JNICALL Java_hn_tools_zip_Archive_extractArchive
         (JNIEnv *env, jobject, jstring arc, jstring dest, jobject obj) {
     try {
         if (jvm) {
@@ -648,7 +648,7 @@ JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_extractArchive
     }
 }
 
-JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_loadAllCodecsAndFormats
+JNIEXPORT void JNICALL Java_hn_tools_zip_Archive_loadAllCodecsAndFormats
         (JNIEnv *env, jobject obj) {
 
     /*void addSupportedFormat(int libIndex,String name,boolean UpdateEnabled,
@@ -813,7 +813,7 @@ JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_loadAllCodecsAndFormats
 
 int InitializeUpdateCallbackIds(JNIEnv *env) {
     int ret = 0;
-    jclass updateCallbackClass = env->FindClass("com/mg/zeearchiver/UpdateCallback");
+    jclass updateCallbackClass = env->FindClass("hn/tools/zip/UpdateCallback");
     if (updateCallbackClass == NULL) {
         LOGE("Error:couldn't get classid of class: %s", "updateCallbackClass");
         return -1;
@@ -872,8 +872,8 @@ int InitializeUpdateCallbackIds(JNIEnv *env) {
 
 JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_init
         (JNIEnv *env, jclass cls) {
-    jclass extractCallbackClass = env->FindClass("com/mg/zeearchiver/ExtractCallback");
-    if (extractCallbackClass == NULL) {
+    jclass extractCallbackClass = env->FindClass("hn/tools/zip/ExtractCallback");
+    if (extractCallbackClass == nullptr) {
         LOGE("Error:couldn't get classid of class: %s", "ExtractCallback");
         return;
     }
@@ -969,7 +969,7 @@ JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_init
     InitializeUpdateCallbackIds(env);
 
     // Initialization for Java Archive List
-    jclass archiveItemsListClass = env->FindClass("com/mg/zeearchiver/data/ArchiveItemsList");
+    jclass archiveItemsListClass = env->FindClass("hn/tools/zip/data/ArchiveItemsList");
     if (archiveItemsListClass == nullptr) {
         LOGE("Error:couldn't get classid of class: %s", "ArchiveItemsList");
         return;
@@ -983,13 +983,13 @@ JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_init
 }
 
 
-JNIEXPORT jlong JNICALL Java_com_mg_zeearchiver_Archive_getRamSize
+JNIEXPORT jlong JNICALL Java_hn_tools_zip_Archive_getRamSize
         (JNIEnv *, jclass cls) {
     UInt64 physSize = NSystem::GetRamSize();
     return (jlong) physSize;
 }
 
-JNIEXPORT jint JNICALL Java_com_mg_zeearchiver_Archive_createArchive
+JNIEXPORT jint JNICALL Java_hn_tools_zip_Archive_createArchive
         (JNIEnv *env, jobject obj, jstring archivename, jobjectArray filespaths, jint length,
          jint level, jint dictionary,
          jint wordSize, jboolean orderMode, jboolean solidDefined, jlong solidBlockSize,

@@ -1,4 +1,4 @@
-package com.mg.zeearchiver.data;
+package hn.tools.zip.data;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -3,7 +3,7 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-package com.mg.zeearchiver;
+package hn.tools.zip;
 
 public interface UpdateCallback {
 		

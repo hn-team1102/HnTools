@@ -1,8 +1,7 @@
-package com.mg.zeearchiver.extension
+package hn.tools.zip.extension
 
-import com.mg.zeearchiver.Archive
-import com.mg.zeearchiver.ArchiveData
-import com.mg.zeearchiver.data.ArchiveItemsList
+import hn.tools.zip.Archive
+import hn.tools.zip.ArchiveData
 
 
 // input file path
