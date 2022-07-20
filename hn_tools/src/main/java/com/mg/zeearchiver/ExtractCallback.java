@@ -1,6 +1,6 @@
 /*
- * Copyright (c) 2018. Created by : Mahmoud Galal.
- * Support: mahmoudgalal57@yahoo.com
+ * Copyright (c) 2021. Created by : JackyHieu.
+ * Support: hieu1211.ictu@gmail.com
  */
 
 package com.mg.zeearchiver;
