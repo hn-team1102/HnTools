@@ -17,7 +17,7 @@ public class Archive {
     static {
         System.loadLibrary("Rar");
         System.loadLibrary("7z");
-        System.loadLibrary("zeearchiver");
+        System.loadLibrary("hn_zip_tools");
         init();
     }
 

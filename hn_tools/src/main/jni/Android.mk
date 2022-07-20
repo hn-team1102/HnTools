@@ -12,12 +12,12 @@ include $(PREBUILT_SHARED_LIBRARY)
 
 include $(CLEAR_VARS)
 
-LOCAL_MODULE    := zeearchiver
+LOCAL_MODULE    := hn_zip_tools
 LOCAL_CPPFLAGS := -DEXTERNAL_CODECS -D_REENTRANT -D_7ZIP_ST -DP7Z_ANDROID -D_LARGEFILE_SOURCE -D_LARGE_FILES -DUNICODE -D_UNICODE -Wno-narrowing
    
 LOCAL_CFLAGS := -DEXTERNAL_CODECS -D_REENTRANT -D_7ZIP_ST -DP7Z_ANDROID -D_LARGEFILE_SOURCE -D_LARGE_FILES -DUNICODE -D_UNICODE
 LOCAL_CPP_FEATURES := exceptions
-LOCAL_SRC_FILES := zeearchiver.cpp ExtractGUI.cpp ExtractCallback.cpp\
+LOCAL_SRC_FILES := hn_zip_tools.cpp ExtractGUI.cpp ExtractCallback.cpp\
 ConsoleClose.cpp ExtractCallbackConsole.cpp \
 BenchCon.cpp List.cpp OpenCallbackConsole.cpp PercentPrinter.cpp \
 UpdateCallbackConsole.cpp UserInputUtils.cpp \

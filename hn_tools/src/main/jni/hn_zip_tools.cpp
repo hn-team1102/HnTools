@@ -870,7 +870,7 @@ int InitializeUpdateCallbackIds(JNIEnv *env) {
     return ret;
 }
 
-JNIEXPORT void JNICALL Java_com_mg_zeearchiver_Archive_init
+JNIEXPORT void JNICALL Java_hn_tools_zip_Archive_init
         (JNIEnv *env, jclass cls) {
     jclass extractCallbackClass = env->FindClass("hn/tools/zip/ExtractCallback");
     if (extractCallbackClass == nullptr) {

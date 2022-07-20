@@ -3,8 +3,8 @@
  * Support: hieu1211.ictu@gmail.com
  */
 
-#ifndef _Included_com_mg_zeearchiver_Archive
-#define _Included_com_mg_zeearchiver_Archive
+#ifndef _Included_vn_hn_tools_Archive
+#define _Included_vn_hn_tools_Archive
 
 #include <jni.h>
 
